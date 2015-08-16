@@ -107,7 +107,8 @@ public class ClientLoader extends ClassLoader {
 			
 			ClientClass cc = new ClientClass(je.getName().replace(".class",""),baos.toByteArray(),size);
 			classes.add(cc);
-			classMap.put(cc.name, cc);
+			classMap.put(cc.getName(), cc);
+			
 			
 			baos.close();
 		}
@@ -125,10 +126,10 @@ public class ClientLoader extends ClassLoader {
 	}
 	
 	@Override
-	public Class findClass(String name) throws ClassNotFoundException {
+	public Class<?> findClass(String name) throws ClassNotFoundException {
 		if(classMap.containsKey(name)) {
 			ClientClass cc = classMap.get(name);
-			return defineClass(name,cc.bytes, 0, cc.size);
+			return defineClass(name,cc.getBytes(), 0, cc.getSize());
 		}
 		else {
 			return super.findClass(name);

@@ -38,7 +38,8 @@ public class Main {
 		System.out.println("Loaded " + classesLoaded + " classes.");
 		
 		System.out.println("Running updater...");
-
+		updater = new Updater();
+		updater.run(clientLoader.getClasses());
 		
 		Object client = clientLoader.loadClass("Client").newInstance();
 		Class<?> clientClass = client.getClass();
