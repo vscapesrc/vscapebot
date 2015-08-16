@@ -1,6 +1,11 @@
 package vscapebot;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -8,9 +13,6 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 
 class ClientClass {
-	private String name;
-	private byte[] bytes;
-	private int size;
 	
 	ClientClass(String name, byte[] bytes, int size) {
 		this.assignedName = this.name = name;
@@ -26,9 +28,10 @@ class ClientClass {
 		classReader.accept(node, ClassReader.EXPAND_FRAMES);
 	}
 	
+	
+	ClassNode node;
 	private boolean editing;
 	private boolean dirty;
-	
 	ClassNode editClass() {
 		if(editing == true) {
 			System.out.println("ClientClass Warning: editClass called for class " + this + " while already editing.");
@@ -41,8 +44,14 @@ class ClientClass {
 		return node;
 	}
 	
+	private String name;
 	String getName() {
 		return name;
+	}
+	
+	private int size;
+	int getSize() {
+		return size;
 	}
 	
 	/**
@@ -60,10 +69,6 @@ class ClientClass {
 		dirty = false;
 	}
 	
-	int getSize() {
-		return size;
-	}
-	
 	void finishEditing() {
 		if(editing == false) {
 			System.out.println("ClientClass Warning: finishEditing called for class " + this + " while not editing.");
@@ -76,6 +81,7 @@ class ClientClass {
 		}
 	}
 	
+	private byte[] bytes;
 	byte[] getBytes() throws IllegalStateException {
 		if(dirty == true) {
 			throw new IllegalStateException("Attempted to get bytes for " + this + " while dirty");
@@ -101,8 +107,44 @@ class ClientClass {
 		return sb.toString();
 	}
 	
-	ClassNode node;
+	
 	String assignedName;
 	HashMap<String, String> fieldMap;
 	HashMap<String, String> methodMap;
+	
+	public static ClientClass[] getJarClasses(JarInputStream jis) {
+		LinkedList<ClientClass> classes = new LinkedList<ClientClass>();
+		
+		JarEntry je;
+		byte[] block = new byte[4096];
+		ByteArrayOutputStream baos;
+		int read;
+		int size;
+		try {
+			while((je = jis.getNextJarEntry()) != null) {
+				if(je.getName().toLowerCase().endsWith(".class") == false)
+					continue;
+				
+				baos = new ByteArrayOutputStream();
+				size = 0;
+				
+				while((read = jis.read(block)) != -1) {
+					size += read;
+					baos.write(block, 0, read);
+				}
+				
+				ClientClass cc = new ClientClass(je.getName().replace(".class",""),baos.toByteArray(),size);
+				classes.add(cc);
+				
+				baos.close();
+			}
+		} catch (IOException e) {
+			return null;
+		}
+		
+		ClientClass[] clazzes = classes.toArray(new ClientClass[0]);
+		classes.clear();
+		
+		return clazzes;
+	}
 }
