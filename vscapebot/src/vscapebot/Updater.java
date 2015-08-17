@@ -20,11 +20,21 @@ public class Updater {
 		ClassRemapper[] rems = remapperList.toArray(new ClassRemapper[0]);
 		
 		if(classes.length > 0 && rems.length > 0) {
+			
+			for(ClientClass cc: classes) {
+				cc.editClass();
+			}
+			
 			for(ClassRemapper r: rems) {
 				for(ClientClass cc: classes) {
 					r.examine(cc);
 				}
 				r.remap();
+				
+			}
+			
+			for(ClientClass cc: classes) {
+				cc.finishEditing();
 			}
 			
 			for(ClientClass cc1: classes) {

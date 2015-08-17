@@ -44,6 +44,14 @@ class ClientClass {
 		return node;
 	}
 	
+	ClassNode getNode() throws IllegalStateException {
+		if(editing == false) {
+			throw new IllegalStateException("Can't get ClassNode for " + this + " while not editing");
+		}
+		
+		return node;
+	}
+	
 	private String name;
 	String getName() {
 		return name;

@@ -1,8 +1,10 @@
 package vscapebot;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.jar.JarInputStream;
 
 public class Main {
 	
@@ -39,6 +41,9 @@ public class Main {
 		
 		System.out.println("Running updater...");
 		updater = new Updater();
+		
+		ClassRemapper r = new ComparisonRemapper(new JarInputStream(new FileInputStream("/home/coding/vscape/refactor.jar")));
+		updater.addRemapper(r);
 		updater.run(clientLoader.getClasses());
 		
 		Object client = clientLoader.loadClass("Client").newInstance();
