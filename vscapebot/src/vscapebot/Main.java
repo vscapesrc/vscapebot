@@ -44,7 +44,7 @@ public class Main {
 		
 		ClassRemapper r = new ComparisonRemapper(new JarInputStream(new FileInputStream("/home/coding/vscape/refactor.jar")));
 		updater.addRemapper(r);
-		updater.run(clientLoader.getClasses());
+		//updater.run(clientLoader.getClasses());
 		
 		Object client = clientLoader.loadClass("Client").newInstance();
 		Class<?> clientClass = client.getClass();

@@ -26,11 +26,12 @@ public class Updater {
 			}
 			
 			for(ClassRemapper r: rems) {
+				r.reset();
+				
 				for(ClientClass cc: classes) {
 					r.examine(cc);
 				}
-				r.remap();
-				
+				r.remap();	
 			}
 			
 			for(ClientClass cc: classes) {
