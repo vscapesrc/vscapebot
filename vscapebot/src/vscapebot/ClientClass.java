@@ -12,10 +12,10 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 
-class ClientClass {
+public class ClientClass {
 	
 	ClientClass(String name, byte[] bytes, int size) {
-		this.assignedName = this.name = name;
+		this.setAssignedName(this.name = name);
 		this.bytes = bytes;
 		this.size = size;
 		fieldMap = new HashMap<String,String>();
@@ -26,13 +26,15 @@ class ClientClass {
 		editing = false;
 		dirty = false;
 		classReader.accept(node, ClassReader.EXPAND_FRAMES);
+		
+		this.superName = node.superName;
 	}
 	
 	
 	ClassNode node;
 	private boolean editing;
 	private boolean dirty;
-	ClassNode editClass() {
+	public ClassNode editClass() {
 		if(editing == true) {
 			System.out.println("ClientClass Warning: editClass called for class " + this + " while already editing.");
 		}
@@ -44,7 +46,7 @@ class ClientClass {
 		return node;
 	}
 	
-	ClassNode getNode() throws IllegalStateException {
+	public ClassNode getNode() throws IllegalStateException {
 		if(editing == false) {
 			throw new IllegalStateException("Can't get ClassNode for " + this + " while not editing");
 		}
@@ -53,8 +55,13 @@ class ClientClass {
 	}
 	
 	private String name;
-	String getName() {
+	public String getName() {
 		return name;
+	}
+	
+	private String superName;
+	public String getSuperName() {
+		return superName;
 	}
 	
 	private int size;
@@ -77,7 +84,7 @@ class ClientClass {
 		dirty = false;
 	}
 	
-	void finishEditing() {
+	public void finishEditing() {
 		if(editing == false) {
 			System.out.println("ClientClass Warning: finishEditing called for class " + this + " while not editing.");
 		}
@@ -109,14 +116,14 @@ class ClientClass {
 		sb.append("class ");
 		sb.append(name);
 		sb.append(" (assignedName=");
-		sb.append(assignedName);
+		sb.append(getAssignedName());
 		sb.append(")");
 		
 		return sb.toString();
 	}
 	
 	
-	String assignedName;
+	private String assignedName;
 	HashMap<String, String> fieldMap;
 	HashMap<String, String> methodMap;
 	
@@ -154,5 +161,13 @@ class ClientClass {
 		classes.clear();
 		
 		return clazzes;
+	}
+
+	public String getAssignedName() {
+		return assignedName;
+	}
+
+	public void setAssignedName(String assignedName) {
+		this.assignedName = assignedName;
 	}
 }
