@@ -1,11 +1,16 @@
 package vscapebot;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+import java.util.jar.JarOutputStream;
+import java.util.zip.ZipEntry;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -54,9 +59,23 @@ public class ClientClass {
 		return node;
 	}
 	
+	public void setNode(ClassNode node) throws IllegalStateException {
+		if(editing == false) {
+			throw new IllegalStateException("Can't set ClassNode for " + this + " while not editing");
+		}
+		
+		this.node = node;
+	}
+	
 	private String name;
 	public String getName() {
 		return name;
+	}
+	
+	public void setName(String name) {
+		if(editing) {
+			this.name = name;
+		}
 	}
 	
 	private String superName;
@@ -161,6 +180,30 @@ public class ClientClass {
 		classes.clear();
 		
 		return clazzes;
+	}
+	
+	public static void saveJar(ClientClass[] classes, File output) throws IOException {
+		if(output.exists()) {
+			if(!output.delete()) {
+				throw new IOException("Could not re-create file: " + output.toString());
+			}
+		}
+		if(!output.createNewFile()) {
+			throw new IOException("Could not create file: " + output.toString());
+		}
+		
+		JarOutputStream jos = new JarOutputStream(new FileOutputStream(output));
+		
+		ZipEntry entry;
+		for(ClientClass cc: classes) {
+			entry = new ZipEntry(cc.getName() + ".class");
+			jos.putNextEntry(entry);
+			jos.write(cc.getBytes(), 0, cc.getSize());
+		}
+		jos.closeEntry();
+		jos.finish();
+		jos.flush();
+		jos.close();
 	}
 
 	public String getAssignedName() {

@@ -85,16 +85,22 @@ public class ClientLoader extends ClassLoader {
 	int loadClasses() throws FileNotFoundException, IOException {
 		JarInputStream jis = new JarInputStream(new FileInputStream(clientFile));
 		
-		classMap = new HashMap<String,ClientClass>();
+
 		this.classes = ClientClass.getJarClasses(jis);
 		
-		for(ClientClass cc: classes) {
-			classMap.put(cc.getName(), cc);
-		}
+		generateClassMap();
 		
 		jis.close();
 		
 		return this.classes.length;
+	}
+	
+	void generateClassMap() {
+		classMap = new HashMap<String,ClientClass>();
+		
+		for(ClientClass cc: classes) {
+			classMap.put(cc.getName(), cc);
+		}
 	}
 	
 	ClientClass[] getClasses() {

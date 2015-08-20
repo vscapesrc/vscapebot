@@ -1,5 +1,6 @@
 package vscapebot;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -49,7 +50,9 @@ public class Main {
 		ClassRemapper r = new ComparisonRemapper(new JarInputStream(new FileInputStream(System.getProperty("user.home") + "/vscape/refactor.jar")),clientLoader.getClasses());
 		updater.addRemapper(r);
 		updater.run(clientLoader.getClasses());
+		ClientClass.saveJar(clientLoader.getClasses(), new File(System.getProperty("user.home") + "/vscape/refactor_dump.jar"));
 		
+		clientLoader.generateClassMap();
 		Object client = clientLoader.loadClass("Client").newInstance();
 		Class<?> clientClass = client.getClass();
 		bot = new Bot(client);

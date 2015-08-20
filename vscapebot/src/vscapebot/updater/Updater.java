@@ -1,11 +1,19 @@
 package vscapebot.updater;
 
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
+
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.Remapper;
+import org.objectweb.asm.commons.RemappingClassAdapter;
+import org.objectweb.asm.commons.SimpleRemapper;
+import org.objectweb.asm.tree.ClassNode;
 
 import vscapebot.ClientClass;
 import vscapebot.updater.remap.ClassRemapper;
 
-public class Updater {
+public class Updater extends Remapper {
 	
 	private LinkedList<ClassRemapper> remapperList;
 			
@@ -16,6 +24,18 @@ public class Updater {
 	public void addRemapper(ClassRemapper id) {
 		if(id != null) {
 			remapperList.add(id);
+		}
+	}
+	
+	Map<String,String> classNameMap;
+	@Override
+	public
+	String mapType(String typeName) {
+		if(classNameMap.containsKey(typeName)) {
+			return classNameMap.get(typeName);
+		}
+		else {
+			return typeName;
 		}
 	}
 	
@@ -37,11 +57,25 @@ public class Updater {
 				r.remap();	
 			}
 			
+			classNameMap = new HashMap<String,String>();
 			for(ClientClass cc: classes) {
-				cc.finishEditing();
-				System.out.println(cc);
+				classNameMap.put(cc.getName(), cc.getAssignedName());
+				cc.setName(cc.getAssignedName());
 			}
 			
+			SimpleRemapper remapper = new SimpleRemapper(classNameMap);
+			RemappingClassAdapter adapter;
+			for(ClientClass cc: classes) {
+				ClassNode newNode = new ClassNode(Opcodes.ASM5);
+				
+				adapter = new RemappingClassAdapter(newNode, remapper);
+				cc.getNode().accept(adapter);
+				
+				cc.setNode(newNode);
+
+				cc.finishEditing();
+			}
+
 			for(ClientClass cc1: classes) {
 				for(ClientClass cc2: classes) {
 					if(cc1 == cc2) continue;
