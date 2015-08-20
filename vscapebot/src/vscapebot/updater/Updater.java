@@ -45,7 +45,7 @@ public class Updater {
 				for(ClientClass cc2: classes) {
 					if(cc1 == cc2) continue;
 					if(cc1 != null && cc2 != null && cc1.getAssignedName().equals(cc2.getAssignedName())) {
-						throw new IllegalStateException("Conflicting remapped classes: " + cc1 + " and " + cc2);
+						System.err.println("Conflicting remapped classes: " + cc1 + " and " + cc2);
 					}
 				}
 			}

@@ -39,12 +39,12 @@ public class InheritanceHierarchyScorer extends ClassScorer {
 			int matches = 0;
 			
 			for(int i = 0; i < length; i++) {
-				if(preds1[i].equals(preds2[i])) {
+				if(preds1[i].equals(preds2[i]) || ((ComparisonRemapper.isStandardLibraryClass(this.getClass().getClassLoader(), preds1[i]) == false) && (ComparisonRemapper.isStandardLibraryClass(this.getClass().getClassLoader(), preds2[i]) == false))) {
 					matches++;
 				}
 			}
 		
-			score = (ComparisonRemapper.SCORE_MAX/2) + (matches * (ComparisonRemapper.SCORE_MAX/2)) / length;
+			score = (matches * (ComparisonRemapper.SCORE_MAX)) / length;
 			}
 		}
 	}

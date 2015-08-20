@@ -220,8 +220,5 @@ class FieldScorer extends ClassScorer {
 			score = 0;
 		}
 		
-		if(score > ComparisonRemapper.SCORE_MAX) {
-			System.err.println("Score greater than SCORE_MAX!");
-		}
 	}
 }
