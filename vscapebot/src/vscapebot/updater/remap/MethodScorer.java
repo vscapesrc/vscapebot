@@ -1,11 +1,17 @@
 package vscapebot.updater.remap;
 
+import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 
 import org.objectweb.asm.tree.MethodNode;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
 
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 public class MethodScorer extends ClassScorer {
@@ -19,7 +25,8 @@ public class MethodScorer extends ClassScorer {
 		
 		int count;
 		
-		if(method1.access != method2.access) {
+		int flags = Opcodes.ACC_FINAL | Opcodes.ACC_STATIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_NATIVE;
+		if((method1.access&flags) != (method2.access&flags)) {
 			return false;
 		}
 		
@@ -56,6 +63,93 @@ public class MethodScorer extends ClassScorer {
 
 		return false;
 	}
+	
+	Map<Integer,Integer> getMethodInsnCounts(MethodNode method) {
+		int type;
+		ListIterator<AbstractInsnNode> li = (ListIterator<AbstractInsnNode>)method.instructions.iterator();
+		AbstractInsnNode insn;
+		Map<Integer,Integer> counts = new HashMap<Integer,Integer>();
+		
+		while(li.hasNext()) {
+			insn = li.next();
+			type = insn.getType();
+			
+			if(type != AbstractInsnNode.FRAME && type != AbstractInsnNode.LABEL && type != AbstractInsnNode.LINE) {
+				if(counts.containsKey(type)) {
+					counts.put(type, counts.get(type)+1);
+				}
+				else {
+					counts.put(type, 1);
+				}
+			}
+		}
+		
+		return counts;
+	}
+	
+	@SuppressWarnings("unchecked")
+	boolean methodCodeIsSimilar(MethodNode method1, MethodNode method2) {
+		int sizeScore;
+		
+		int size1 = method1.instructions.size();
+		int size2 = method2.instructions.size();
+		
+		if(size1 == size2) {
+			if(size1 == 0) {
+				return true;
+			}
+			else {
+				sizeScore = ComparisonRemapper.SCORE_MAX;
+			}
+		}
+		else if(size1 < size2) {
+			sizeScore = (size1 * ComparisonRemapper.SCORE_MAX) / size2;
+		}
+		else {
+			sizeScore = (size2 * ComparisonRemapper.SCORE_MAX) / size1;
+		}
+		
+		Map<Integer, Integer> counts1, counts2;
+		
+		counts1 = getMethodInsnCounts(method1);
+		counts2 = getMethodInsnCounts(method2);
+		
+		List<Integer> insnScores = new LinkedList<Integer>();
+		
+		int count1,count2;
+		for(Integer type: counts1.keySet()) {
+			if(counts2.containsKey(type)) {
+				count1 = counts1.get(type);
+				count2 = counts2.get(type);
+				
+				if(count1 <= count2) {
+					insnScores.add((count1 * ComparisonRemapper.SCORE_MAX) / count2);
+				}
+				else {
+					insnScores.add((count2 * ComparisonRemapper.SCORE_MAX) / count1);
+				}
+			}
+			else {
+				insnScores.add(ComparisonRemapper.SCORE_MIN);
+			}
+		}
+		
+		int insnScore = ComparisonRemapper.SCORE_MIN;
+		for(Integer s: insnScores) {
+			insnScore += s;
+		}
+		
+		if(insnScores.size() > 0) {
+			insnScore /= insnScores.size();
+		}
+		else {
+			insnScore = ComparisonRemapper.SCORE_MIN;
+		}
+		
+		int overallScore = (sizeScore + insnScore) / 2;
+		
+		return overallScore > ((ComparisonRemapper.SCORE_MAX * 2) / 3);
+	}
 
 	@Override
 	void evaluateScore(ClassNode node1, ClassNode node2) {
@@ -83,7 +177,7 @@ public class MethodScorer extends ClassScorer {
 		
 		for(Object method1: less.methods) {
 			for(Object method2: more.methods) {
-				if(methodDescriptorsAreSimilar((MethodNode)method1,(MethodNode)method2)) {
+				if(methodDescriptorsAreSimilar((MethodNode)method1,(MethodNode)method2) && methodCodeIsSimilar((MethodNode)method1,(MethodNode)method2)) {
 					matches++;
 					break;
 				}
@@ -91,7 +185,7 @@ public class MethodScorer extends ClassScorer {
 		}
 		
 		if(less.methods.size() > 0) {
-			score = (matches * ComparisonRemapper.SCORE_MAX) / more.methods.size();
+			score = (((matches * ComparisonRemapper.SCORE_MAX) / more.methods.size()) + numMethodsScore) / 2;
 		}
 		else {
 			score = ComparisonRemapper.SCORE_UNAVAILABLE;

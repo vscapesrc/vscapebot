@@ -97,7 +97,7 @@ class FieldScorer extends ClassScorer {
 			}
 		}
 		
-		int score = 0;
+		int score = ComparisonRemapper.SCORE_MIN;
 		LinkedList<Integer> scores = new LinkedList<Integer>();
 		for(Type moreType: moreFieldsCount.keySet()) {
 			int moreCount = moreFieldsCount.get(moreType);
@@ -116,10 +116,10 @@ class FieldScorer extends ClassScorer {
 			}
 			
 			if(lessCount <= moreCount) {
-				scores.add(lessCount * 100 / moreCount);
+				scores.add(lessCount * ComparisonRemapper.SCORE_MAX / moreCount);
 			}
 			else {
-				scores.add(moreCount * 100 / lessCount);
+				scores.add(moreCount * ComparisonRemapper.SCORE_MAX / lessCount);
 			}
 		}
 		
@@ -187,7 +187,7 @@ class FieldScorer extends ClassScorer {
 			}
 		}
 		else {
-			numFieldsScore = (less.fields.size() * 100) / more.fields.size();
+			numFieldsScore = (less.fields.size() * ComparisonRemapper.SCORE_MAX) / more.fields.size();
 			byteFieldsScore = getFieldsScore(less,more,Type.BYTE_TYPE);
 			charFieldsScore = getFieldsScore(less,more,Type.CHAR_TYPE);
 			shortFieldsScore = getFieldsScore(less,more,Type.SHORT_TYPE);
@@ -217,7 +217,7 @@ class FieldScorer extends ClassScorer {
 			score /= scores.size();
 		}
 		else {
-			score = 0;
+			score = ComparisonRemapper.SCORE_MIN;
 		}
 		
 	}

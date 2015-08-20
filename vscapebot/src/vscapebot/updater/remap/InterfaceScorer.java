@@ -59,6 +59,9 @@ class InterfaceScorer extends ClassScorer {
 				if(denom != 0) {
 					score = (numer * ComparisonRemapper.SCORE_MAX) / denom;
 				}
+				else {
+					score = ComparisonRemapper.SCORE_UNAVAILABLE;
+				}
 			}
 		}
 		else if(node1.interfaces.size() > node2.interfaces.size() || node1.interfaces.size() < node2.interfaces.size()) {
@@ -108,6 +111,9 @@ class InterfaceScorer extends ClassScorer {
 
 				if(denom != 0) {
 					score = (numer * ComparisonRemapper.SCORE_MAX) / denom;
+				}
+				else {
+					score = ComparisonRemapper.SCORE_UNAVAILABLE;
 				}
 			}
 		}

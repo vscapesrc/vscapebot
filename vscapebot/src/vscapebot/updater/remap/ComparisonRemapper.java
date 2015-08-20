@@ -15,6 +15,10 @@ import vscapebot.ClientLoader;
 
 public class ComparisonRemapper extends ClassRemapper {
 	
+	static int SCORE_MAX = 1000;
+	static int SCORE_MIN = 0;
+	static int SCORE_UNAVAILABLE = -1;
+	
 	private ClientClass[] clientClasses;
 	private ClientClass[] refactoredClasses;
 	private ClassScorer[] classScorers;
@@ -115,9 +119,9 @@ public class ComparisonRemapper extends ClassRemapper {
 				score += s;
 			}
 			
-			if(score > 0) {
+			if(scores.size() > 0) {
 				score /= scores.size();
-				if(score > 60) System.out.println(cc + " <=> " + refCC + " = score of " + score);
+				//if(score > ComparisonRemapper.SCORE_MAX * 0.6) System.out.println(cc + " <=> " + refCC + " = score of " + score);
 			}
 
 			scoreList.add(new Score(refCC,score));
@@ -140,21 +144,77 @@ public class ComparisonRemapper extends ClassRemapper {
 		return isStandard;
 	}
 	
-	static int SCORE_MAX = 100;
-	static int SCORE_MIN = 0;
-	static int SCORE_UNAVAILABLE = -1;
-	
 	@Override
 	public void remap() {
 		for(List<Score> scoreList: scores.values()) {
 			Collections.sort(scoreList);
 		}
 		
-		for(ClientClass cc: scores.keySet()) {
-			cc.setAssignedName(scores.get(cc).get(0).cc.getName());
-			System.out.println(cc);
+		Map<String, ClientClass> mappings = new HashMap<String, ClientClass>();
+		
+		String name;
+		int iterationsRequired = 1;
+		while(iterationsRequired-- > 0) {
+			for(ClientClass cc: scores.keySet()) {
+				
+				List<Score> scores = this.scores.get(cc);
+				name = scores.get(0).cc.getName();
+				
+				if(mappings.containsKey(name) && mappings.get(name).getName().equals(cc.getName()) == false) {
+					// we have a mapping ambiguity so try to resolve it 
+					int otherIndex = 0;
+					List<Score> otherScores = this.scores.get(mappings.get(name));
+					for(Score s: otherScores) {
+						if(s.cc.getName().equals(name)) {
+							break;
+						}
+						otherIndex++;
+					}
+					
+					int index = 0;
+					Score scoree = null, otherScore = null;
+					while(index < scores.size() && otherIndex < otherScores.size()) {
+						scoree = scores.get(index);
+						otherScore = otherScores.get(otherIndex);
+						if(scoree.matchingScore == otherScore.matchingScore) {
+							index++;
+							otherIndex++;
+						}
+						else if(scoree.matchingScore < otherScore.matchingScore) {
+							index++;
+							break;
+						}
+						else {
+							otherIndex++;
+							break;
+						}
+					}
+					
+					scoree = scores.get(index);
+					this.scores.put(cc,scores.subList(index, scores.size()-1));
+					
+					otherScore = otherScores.get(otherIndex);
+					ClientClass otherCC = mappings.get(name);
+					this.scores.put(otherCC,otherScores.subList(otherIndex, otherScores.size()-1));
+					mappings.remove(name);
+					mappings.put(otherScore.cc.getName(), otherCC);
+					otherCC.setAssignedName(otherScore.cc.getName());
+					
+					mappings.put(scoree.cc.getName(),cc);
+					cc.setAssignedName(scoree.cc.getName());
+					
+					iterationsRequired++;
+					
+				}
+				else {
+					mappings.put(name, cc);
+					cc.setAssignedName(name);
+				}
+				
+			}
 		}
 		
+		/* Finish editing classes for the refactor which was loaded in this class */
 		for(ClientClass cc: refactoredClasses) {
 			cc.finishEditing();
 		}

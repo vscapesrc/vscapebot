@@ -39,6 +39,7 @@ public class Updater {
 			
 			for(ClientClass cc: classes) {
 				cc.finishEditing();
+				System.out.println(cc);
 			}
 			
 			for(ClientClass cc1: classes) {
@@ -46,6 +47,9 @@ public class Updater {
 					if(cc1 == cc2) continue;
 					if(cc1 != null && cc2 != null && cc1.getAssignedName().equals(cc2.getAssignedName())) {
 						System.err.println("Conflicting remapped classes: " + cc1 + " and " + cc2);
+						System.err.println("Resetting mapping.");
+						cc1.setAssignedName(cc1.getName());
+						cc2.setAssignedName(cc2.getName());
 					}
 				}
 			}
