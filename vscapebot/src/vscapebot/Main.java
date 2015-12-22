@@ -7,9 +7,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.jar.JarInputStream;
 
+import vscapebot.bot.Bot;
 import vscapebot.updater.Updater;
 import vscapebot.updater.remap.ClassRemapper;
-import vscapebot.updater.remap.ComparisonRemapper;
+import vscapebot.updater.remap.ComparisonClassRemapper;
 
 public class Main {
 	
@@ -47,8 +48,8 @@ public class Main {
 		System.out.println("Running updater...");
 		updater = new Updater();
 		
-		ClassRemapper r = new ComparisonRemapper(new JarInputStream(new FileInputStream(System.getProperty("user.home") + "/vscape/refactor.jar")),clientLoader.getClasses());
-		updater.addRemapper(r);
+		ClassRemapper r = new ComparisonClassRemapper(new JarInputStream(new FileInputStream(System.getProperty("user.home") + "/vscape/refactor.jar")),clientLoader.getClasses());
+		updater.addClassRemapper(r);
 		updater.run(clientLoader.getClasses());
 		ClientClass.saveJar(clientLoader.getClasses(), new File(System.getProperty("user.home") + "/vscape/refactor_dump.jar"));
 		

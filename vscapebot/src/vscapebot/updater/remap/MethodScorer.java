@@ -99,14 +99,14 @@ public class MethodScorer extends ClassScorer {
 				return true;
 			}
 			else {
-				sizeScore = ComparisonRemapper.SCORE_MAX;
+				sizeScore = ComparisonClassRemapper.SCORE_MAX;
 			}
 		}
 		else if(size1 < size2) {
-			sizeScore = (size1 * ComparisonRemapper.SCORE_MAX) / size2;
+			sizeScore = (size1 * ComparisonClassRemapper.SCORE_MAX) / size2;
 		}
 		else {
-			sizeScore = (size2 * ComparisonRemapper.SCORE_MAX) / size1;
+			sizeScore = (size2 * ComparisonClassRemapper.SCORE_MAX) / size1;
 		}
 		
 		Map<Integer, Integer> counts1, counts2;
@@ -123,18 +123,18 @@ public class MethodScorer extends ClassScorer {
 				count2 = counts2.get(type);
 				
 				if(count1 <= count2) {
-					insnScores.add((count1 * ComparisonRemapper.SCORE_MAX) / count2);
+					insnScores.add((count1 * ComparisonClassRemapper.SCORE_MAX) / count2);
 				}
 				else {
-					insnScores.add((count2 * ComparisonRemapper.SCORE_MAX) / count1);
+					insnScores.add((count2 * ComparisonClassRemapper.SCORE_MAX) / count1);
 				}
 			}
 			else {
-				insnScores.add(ComparisonRemapper.SCORE_MIN);
+				insnScores.add(ComparisonClassRemapper.SCORE_MIN);
 			}
 		}
 		
-		int insnScore = ComparisonRemapper.SCORE_MIN;
+		int insnScore = ComparisonClassRemapper.SCORE_MIN;
 		for(Integer s: insnScores) {
 			insnScore += s;
 		}
@@ -143,12 +143,12 @@ public class MethodScorer extends ClassScorer {
 			insnScore /= insnScores.size();
 		}
 		else {
-			insnScore = ComparisonRemapper.SCORE_MIN;
+			insnScore = ComparisonClassRemapper.SCORE_MIN;
 		}
 		
 		int overallScore = (sizeScore + insnScore) / 2;
 		
-		return overallScore > ((ComparisonRemapper.SCORE_MAX * 2) / 3);
+		return overallScore > ((ComparisonClassRemapper.SCORE_MAX * 2) / 3);
 	}
 
 	@Override
@@ -167,10 +167,10 @@ public class MethodScorer extends ClassScorer {
 		}
 		
 		if(less.methods.size() == more.methods.size()) {
-			numMethodsScore = ComparisonRemapper.SCORE_MAX;
+			numMethodsScore = ComparisonClassRemapper.SCORE_MAX;
 		}
 		else {
-			numMethodsScore = (ComparisonRemapper.SCORE_MAX * less.methods.size()) / more.methods.size();
+			numMethodsScore = (ComparisonClassRemapper.SCORE_MAX * less.methods.size()) / more.methods.size();
 		}
 		
 		int matches = 0;
@@ -185,10 +185,10 @@ public class MethodScorer extends ClassScorer {
 		}
 		
 		if(less.methods.size() > 0) {
-			score = (((matches * ComparisonRemapper.SCORE_MAX) / more.methods.size()) + numMethodsScore) / 2;
+			score = (((matches * ComparisonClassRemapper.SCORE_MAX) / more.methods.size()) + numMethodsScore) / 2;
 		}
 		else {
-			score = ComparisonRemapper.SCORE_UNAVAILABLE;
+			score = ComparisonClassRemapper.SCORE_UNAVAILABLE;
 		}
 	}
 }

@@ -21,7 +21,7 @@ public class Updater extends Remapper {
 		remapperList = new LinkedList<ClassRemapper>();
 	}
 	
-	public void addRemapper(ClassRemapper id) {
+	public void addClassRemapper(ClassRemapper id) {
 		if(id != null) {
 			remapperList.add(id);
 		}
@@ -63,6 +63,18 @@ public class Updater extends Remapper {
 				cc.setName(cc.getAssignedName());
 			}
 			
+			for(ClientClass cc1: classes) {
+				for(ClientClass cc2: classes) {
+					if(cc1.getName().equals(cc2.getName())) continue;
+					if(cc1 != null && cc2 != null && cc1.getAssignedName().equals(cc2.getAssignedName())) {
+						System.err.println("Conflicting remapped classes: " + cc1 + " and " + cc2);
+						System.err.println("Resetting mapping.");
+						cc1.setAssignedName(cc1.getName());
+						cc2.setAssignedName(cc2.getName());
+					}
+				}
+			}
+			
 			SimpleRemapper remapper = new SimpleRemapper(classNameMap);
 			RemappingClassAdapter adapter;
 			for(ClientClass cc: classes) {
@@ -75,19 +87,6 @@ public class Updater extends Remapper {
 
 				cc.finishEditing();
 			}
-
-			for(ClientClass cc1: classes) {
-				for(ClientClass cc2: classes) {
-					if(cc1 == cc2) continue;
-					if(cc1 != null && cc2 != null && cc1.getAssignedName().equals(cc2.getAssignedName())) {
-						System.err.println("Conflicting remapped classes: " + cc1 + " and " + cc2);
-						System.err.println("Resetting mapping.");
-						cc1.setAssignedName(cc1.getName());
-						cc2.setAssignedName(cc2.getName());
-					}
-				}
-			}
-			
 
 		}
 	}

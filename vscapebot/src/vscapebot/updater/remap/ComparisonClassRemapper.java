@@ -13,7 +13,7 @@ import org.objectweb.asm.tree.ClassNode;
 import vscapebot.ClientClass;
 import vscapebot.ClientLoader;
 
-public class ComparisonRemapper extends ClassRemapper {
+public class ComparisonClassRemapper extends ClassRemapper {
 	
 	static int SCORE_MAX = 1000;
 	static int SCORE_MIN = 0;
@@ -46,7 +46,7 @@ public class ComparisonRemapper extends ClassRemapper {
 		}
 	}
 	
-	public ComparisonRemapper(JarInputStream refactorJis, ClientClass[] classes) {
+	public ComparisonClassRemapper(JarInputStream refactorJis, ClientClass[] classes) {
 		clientClasses = classes;
 		refactoredClasses = ClientClass.getJarClasses(refactorJis);
 		for(ClientClass cc: refactoredClasses) {
@@ -54,7 +54,7 @@ public class ComparisonRemapper extends ClassRemapper {
 		}
 		
 		examined = new LinkedList<ClientClass>();
-		scores = new HashMap<ClientClass,List<Score>>();
+		classScores = new HashMap<ClientClass,List<Score>>();
 	}
 	
 	private class Score implements Comparable<Score> {
@@ -78,10 +78,10 @@ public class ComparisonRemapper extends ClassRemapper {
 	public void reset() {
 		examined.clear();
 	
-		for(List<Score> ls: scores.values()) {
+		for(List<Score> ls: classScores.values()) {
 			ls.clear();
 		}
-		scores.clear();
+		classScores.clear();
 		
 		classScorers = new ClassScorer[5];
 		classScorers[0] = new InterfaceScorer();
@@ -92,7 +92,7 @@ public class ComparisonRemapper extends ClassRemapper {
 	}
 	
 	List<ClientClass> examined;
-	Map<ClientClass,List<Score>> scores;
+	Map<ClientClass,List<Score>> classScores;
 	
 	@Override
 	public void examine(ClientClass cc) {
@@ -127,7 +127,7 @@ public class ComparisonRemapper extends ClassRemapper {
 			scoreList.add(new Score(refCC,score));
 		}
 		
-		this.scores.put(cc,scoreList);
+		this.classScores.put(cc,scoreList);
 	}
 	
 	static boolean isStandardLibraryClass(ClassLoader classLoader, String internalName) {
@@ -146,69 +146,101 @@ public class ComparisonRemapper extends ClassRemapper {
 	
 	@Override
 	public void remap() {
-		for(List<Score> scoreList: scores.values()) {
+		for(List<Score> scoreList: classScores.values()) {
 			Collections.sort(scoreList);
 		}
 		
-		Map<String, ClientClass> mappings = new HashMap<String, ClientClass>();
+		Map<String, ClientClass> previousRemappings = new HashMap<String, ClientClass>();
 		
-		String name;
+		String bestMatchClassName;
 		int iterationsRequired = 1;
 		while(iterationsRequired-- > 0) {
-			for(ClientClass cc: scores.keySet()) {
+			for(ClientClass remappingClass: classScores.keySet()) {
 				
-				List<Score> scores = this.scores.get(cc);
-				name = scores.get(0).cc.getName();
+				List<Score> remappingClassScores = this.classScores.get(remappingClass);
+				if(remappingClassScores.size() == 0) {
+					// skip a class that has no scored mappings
+					continue;
+				}
 				
-				if(mappings.containsKey(name) && mappings.get(name).getName().equals(cc.getName()) == false) {
+				bestMatchClassName = remappingClassScores.get(0).cc.getName();
+				
+				if(previousRemappings.containsKey(bestMatchClassName) && previousRemappings.get(bestMatchClassName).getName().equals(remappingClass.getName()) == false) {
 					// we have a mapping ambiguity so try to resolve it 
-					int otherIndex = 0;
-					List<Score> otherScores = this.scores.get(mappings.get(name));
-					for(Score s: otherScores) {
-						if(s.cc.getName().equals(name)) {
+					int otherScoreIndex = 0;
+					
+					List<Score> otherClassScores = this.classScores.get(previousRemappings.get(bestMatchClassName));
+					for(Score score: otherClassScores) {
+						if(score.cc.getName().equals(bestMatchClassName)) {
 							break;
 						}
-						otherIndex++;
+						otherScoreIndex++;
 					}
 					
-					int index = 0;
-					Score scoree = null, otherScore = null;
-					while(index < scores.size() && otherIndex < otherScores.size()) {
-						scoree = scores.get(index);
-						otherScore = otherScores.get(otherIndex);
-						if(scoree.matchingScore == otherScore.matchingScore) {
-							index++;
-							otherIndex++;
+					int remappingScoreIndex = 0;
+					Score remappingScore = null, otherScore = null;
+					while(remappingScoreIndex < remappingClassScores.size() && otherScoreIndex < otherClassScores.size()) {
+						remappingScore = remappingClassScores.get(remappingScoreIndex);
+						otherScore = otherClassScores.get(otherScoreIndex);
+						
+						
+						if(remappingScore.matchingScore == otherScore.matchingScore) {
+							// both classes score equally to the mapping
+							remappingScoreIndex++;
+							otherScoreIndex++;
 						}
-						else if(scoree.matchingScore < otherScore.matchingScore) {
-							index++;
+						else if(remappingScore.matchingScore < otherScore.matchingScore) {
+							// the class being remapped scores less than the other class
+							remappingScoreIndex++;
 							break;
 						}
 						else {
-							otherIndex++;
+							// the class that was remapped scores less
+							otherScoreIndex++;
 							break;
 						}
 					}
 					
-					scoree = scores.get(index);
-					this.scores.put(cc,scores.subList(index, scores.size()-1));
+					ClientClass prevRemappedCC = previousRemappings.get(bestMatchClassName);
 					
-					otherScore = otherScores.get(otherIndex);
-					ClientClass otherCC = mappings.get(name);
-					this.scores.put(otherCC,otherScores.subList(otherIndex, otherScores.size()-1));
-					mappings.remove(name);
-					mappings.put(otherScore.cc.getName(), otherCC);
-					otherCC.setAssignedName(otherScore.cc.getName());
+					String prevRemappedName;
+					String remappingName;
+					if(remappingScoreIndex >= remappingClassScores.size()) {
+						remappingName = remappingClass.getName();
+					}
+					else {
+						remappingScore = remappingClassScores.get(remappingScoreIndex);
+						remappingName = remappingScore.cc.getName();
+						this.classScores.put(remappingClass,remappingClassScores.subList(remappingScoreIndex, remappingClassScores.size()-1));
+					}
 					
-					mappings.put(scoree.cc.getName(),cc);
-					cc.setAssignedName(scoree.cc.getName());
+					if(otherScoreIndex >= otherClassScores.size()) {
+						prevRemappedName = prevRemappedCC.getName();
+					}
+					else {
+						otherScore = otherClassScores.get(otherScoreIndex);
+						prevRemappedName = otherScore.cc.getName();
+						this.classScores.put(prevRemappedCC,otherClassScores.subList(otherScoreIndex, otherClassScores.size()-1));
+					}
+					
+					{
+						//remove conflicting mapping
+						previousRemappings.remove(bestMatchClassName);
+						
+						// create new mapping for the previously mapped class
+						previousRemappings.put(prevRemappedName, prevRemappedCC);
+						prevRemappedCC.setAssignedName(prevRemappedName);
+						
+						// create mapping for the yet unmapped class
+						previousRemappings.put(remappingName,remappingClass);
+						remappingClass.setAssignedName(remappingName);
+					}
 					
 					iterationsRequired++;
-					
 				}
 				else {
-					mappings.put(name, cc);
-					cc.setAssignedName(name);
+					previousRemappings.put(bestMatchClassName, remappingClass);
+					remappingClass.setAssignedName(bestMatchClassName);
 				}
 				
 			}

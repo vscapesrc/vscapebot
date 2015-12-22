@@ -42,10 +42,10 @@ class FieldScorer extends ClassScorer {
 		
 		if(denom == 0) {
 			if(numer == 0) {
-				score = ComparisonRemapper.SCORE_UNAVAILABLE;
+				score = ComparisonClassRemapper.SCORE_UNAVAILABLE;
 			}
 			else {
-				score = ComparisonRemapper.SCORE_MIN;
+				score = ComparisonClassRemapper.SCORE_MIN;
 			}
 		}
 		else {
@@ -97,14 +97,14 @@ class FieldScorer extends ClassScorer {
 			}
 		}
 		
-		int score = ComparisonRemapper.SCORE_MIN;
+		int score = ComparisonClassRemapper.SCORE_MIN;
 		LinkedList<Integer> scores = new LinkedList<Integer>();
 		for(Type moreType: moreFieldsCount.keySet()) {
 			int moreCount = moreFieldsCount.get(moreType);
 			int lessCount = 0;
 			
 			if(lessFieldsCount.containsKey(moreType)) {
-				if(!ComparisonRemapper.isStandardLibraryClass(classLoader,moreType.getInternalName())) {
+				if(!ComparisonClassRemapper.isStandardLibraryClass(classLoader,moreType.getInternalName())) {
 					continue;
 				}
 				else {
@@ -116,10 +116,10 @@ class FieldScorer extends ClassScorer {
 			}
 			
 			if(lessCount <= moreCount) {
-				scores.add(lessCount * ComparisonRemapper.SCORE_MAX / moreCount);
+				scores.add(lessCount * ComparisonClassRemapper.SCORE_MAX / moreCount);
 			}
 			else {
-				scores.add(moreCount * ComparisonRemapper.SCORE_MAX / lessCount);
+				scores.add(moreCount * ComparisonClassRemapper.SCORE_MAX / lessCount);
 			}
 		}
 		
@@ -128,7 +128,7 @@ class FieldScorer extends ClassScorer {
 		}
 		
 		if(scores.size() == 0) {
-			score = ComparisonRemapper.SCORE_UNAVAILABLE;
+			score = ComparisonClassRemapper.SCORE_UNAVAILABLE;
 		}
 		else {
 			score /= scores.size();
@@ -137,18 +137,18 @@ class FieldScorer extends ClassScorer {
 		if(lessSelfReferences == moreSelfReferences)
 			return score;
 		else {
-			return ComparisonRemapper.SCORE_MIN;
+			return ComparisonClassRemapper.SCORE_MIN;
 		}
 	}
 	
 	void addScore(List<Integer> scores, int score) {
-		if(score != ComparisonRemapper.SCORE_UNAVAILABLE) {
+		if(score != ComparisonClassRemapper.SCORE_UNAVAILABLE) {
 			scores.add(score);
 		}
 	}
 	
 	void evaluateScore(ClassNode node1, ClassNode node2) {
-		score = ComparisonRemapper.SCORE_MIN;
+		score = ComparisonClassRemapper.SCORE_MIN;
 		LinkedList<Integer> scores = new LinkedList<Integer>();
 		
 		int numFieldsScore;
@@ -162,32 +162,32 @@ class FieldScorer extends ClassScorer {
 			more = node1;
 		}
 		
-		int byteFieldsScore = ComparisonRemapper.SCORE_UNAVAILABLE;
-		int charFieldsScore = ComparisonRemapper.SCORE_UNAVAILABLE;
-		int shortFieldsScore = ComparisonRemapper.SCORE_UNAVAILABLE;
-		int intFieldsScore = ComparisonRemapper.SCORE_UNAVAILABLE;
-		int longFieldsScore = ComparisonRemapper.SCORE_UNAVAILABLE;
-		int floatFieldsScore = ComparisonRemapper.SCORE_UNAVAILABLE;
-		int doubleFieldsScore = ComparisonRemapper.SCORE_UNAVAILABLE;
-		int objectFieldsScore = ComparisonRemapper.SCORE_UNAVAILABLE;
+		int byteFieldsScore = ComparisonClassRemapper.SCORE_UNAVAILABLE;
+		int charFieldsScore = ComparisonClassRemapper.SCORE_UNAVAILABLE;
+		int shortFieldsScore = ComparisonClassRemapper.SCORE_UNAVAILABLE;
+		int intFieldsScore = ComparisonClassRemapper.SCORE_UNAVAILABLE;
+		int longFieldsScore = ComparisonClassRemapper.SCORE_UNAVAILABLE;
+		int floatFieldsScore = ComparisonClassRemapper.SCORE_UNAVAILABLE;
+		int doubleFieldsScore = ComparisonClassRemapper.SCORE_UNAVAILABLE;
+		int objectFieldsScore = ComparisonClassRemapper.SCORE_UNAVAILABLE;
 		if(more.fields.size() == 0) {
 			if(less.fields.size() == 0) {
-				numFieldsScore = ComparisonRemapper.SCORE_UNAVAILABLE;
+				numFieldsScore = ComparisonClassRemapper.SCORE_UNAVAILABLE;
 			}
 			else {
-				numFieldsScore = ComparisonRemapper.SCORE_MIN;
-				byteFieldsScore = ComparisonRemapper.SCORE_MIN;
-				charFieldsScore = ComparisonRemapper.SCORE_MIN;
-				shortFieldsScore = ComparisonRemapper.SCORE_MIN;
-				intFieldsScore = ComparisonRemapper.SCORE_MIN;
-				longFieldsScore = ComparisonRemapper.SCORE_MIN;
-				floatFieldsScore = ComparisonRemapper.SCORE_MIN;
-				doubleFieldsScore = ComparisonRemapper.SCORE_MIN;
-				objectFieldsScore = ComparisonRemapper.SCORE_MIN;
+				numFieldsScore = ComparisonClassRemapper.SCORE_MIN;
+				byteFieldsScore = ComparisonClassRemapper.SCORE_MIN;
+				charFieldsScore = ComparisonClassRemapper.SCORE_MIN;
+				shortFieldsScore = ComparisonClassRemapper.SCORE_MIN;
+				intFieldsScore = ComparisonClassRemapper.SCORE_MIN;
+				longFieldsScore = ComparisonClassRemapper.SCORE_MIN;
+				floatFieldsScore = ComparisonClassRemapper.SCORE_MIN;
+				doubleFieldsScore = ComparisonClassRemapper.SCORE_MIN;
+				objectFieldsScore = ComparisonClassRemapper.SCORE_MIN;
 			}
 		}
 		else {
-			numFieldsScore = (less.fields.size() * ComparisonRemapper.SCORE_MAX) / more.fields.size();
+			numFieldsScore = (less.fields.size() * ComparisonClassRemapper.SCORE_MAX) / more.fields.size();
 			byteFieldsScore = getFieldsScore(less,more,Type.BYTE_TYPE);
 			charFieldsScore = getFieldsScore(less,more,Type.CHAR_TYPE);
 			shortFieldsScore = getFieldsScore(less,more,Type.SHORT_TYPE);
@@ -217,7 +217,7 @@ class FieldScorer extends ClassScorer {
 			score /= scores.size();
 		}
 		else {
-			score = ComparisonRemapper.SCORE_MIN;
+			score = ComparisonClassRemapper.SCORE_MIN;
 		}
 		
 	}

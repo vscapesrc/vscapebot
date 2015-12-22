@@ -157,7 +157,7 @@ public class CodeReferenceScorer extends ClassScorer {
 
 	@Override
 	void evaluateScore(ClassNode node1, ClassNode node2) {
-		int fieldRefScore, methodRefScore = ComparisonRemapper.SCORE_UNAVAILABLE;
+		int fieldRefScore, methodRefScore = ComparisonClassRemapper.SCORE_UNAVAILABLE;
 		
 		ClassNode clientNode, refactorNode;
 		
@@ -170,7 +170,7 @@ public class CodeReferenceScorer extends ClassScorer {
 			refactorNode = node1;
 		}
 		else {
-			score = ComparisonRemapper.SCORE_UNAVAILABLE;
+			score = ComparisonClassRemapper.SCORE_UNAVAILABLE;
 			return;
 		}
 		
@@ -190,10 +190,10 @@ public class CodeReferenceScorer extends ClassScorer {
 		}
 		
 		if(more > 0) {
-			fieldRefScore = (ComparisonRemapper.SCORE_MAX * less) / more;
+			fieldRefScore = (ComparisonClassRemapper.SCORE_MAX * less) / more;
 		}
 		else {
-			fieldRefScore = ComparisonRemapper.SCORE_UNAVAILABLE;
+			fieldRefScore = ComparisonClassRemapper.SCORE_UNAVAILABLE;
 		}
 		
 		int clientMethodRefs, refactorMethodRefs;
@@ -210,16 +210,16 @@ public class CodeReferenceScorer extends ClassScorer {
 		}
 		
 		if(more > 0) {
-			methodRefScore = (ComparisonRemapper.SCORE_MAX * less) / more;
+			methodRefScore = (ComparisonClassRemapper.SCORE_MAX * less) / more;
 		}
 		else {
-			methodRefScore = ComparisonRemapper.SCORE_UNAVAILABLE;
+			methodRefScore = ComparisonClassRemapper.SCORE_UNAVAILABLE;
 		}
 		
-		if(fieldRefScore == ComparisonRemapper.SCORE_UNAVAILABLE) {
+		if(fieldRefScore == ComparisonClassRemapper.SCORE_UNAVAILABLE) {
 			score = methodRefScore;
 		}
-		else if(methodRefScore == ComparisonRemapper.SCORE_UNAVAILABLE) {
+		else if(methodRefScore == ComparisonClassRemapper.SCORE_UNAVAILABLE) {
 			score = fieldRefScore;
 		}
 		else {

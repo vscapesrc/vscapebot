@@ -6,8 +6,8 @@ import org.objectweb.asm.tree.ClassNode;
 
 public class InheritanceHierarchyScorer extends ClassScorer {
 
-	ComparisonRemapper remapper;
-	InheritanceHierarchyScorer(ComparisonRemapper remapper) {
+	ComparisonClassRemapper remapper;
+	InheritanceHierarchyScorer(ComparisonClassRemapper remapper) {
 		this.remapper = remapper;
 	}
 
@@ -28,23 +28,23 @@ public class InheritanceHierarchyScorer extends ClassScorer {
 		String[] preds2 = inheritancePredecessors(node2);
 		
 		if(preds1.length != preds2.length) {
-			score = ComparisonRemapper.SCORE_MIN;
+			score = ComparisonClassRemapper.SCORE_MIN;
 		}
 		else {
 			if(preds1.length == 0) {
-				score = ComparisonRemapper.SCORE_UNAVAILABLE;
+				score = ComparisonClassRemapper.SCORE_UNAVAILABLE;
 			}
 			else {
 			int length = preds1.length;
 			int matches = 0;
 			
 			for(int i = 0; i < length; i++) {
-				if(preds1[i].equals(preds2[i]) || ((ComparisonRemapper.isStandardLibraryClass(this.getClass().getClassLoader(), preds1[i]) == false) && (ComparisonRemapper.isStandardLibraryClass(this.getClass().getClassLoader(), preds2[i]) == false))) {
+				if(preds1[i].equals(preds2[i]) || ((ComparisonClassRemapper.isStandardLibraryClass(this.getClass().getClassLoader(), preds1[i]) == false) && (ComparisonClassRemapper.isStandardLibraryClass(this.getClass().getClassLoader(), preds2[i]) == false))) {
 					matches++;
 				}
 			}
 		
-			score = (matches * (ComparisonRemapper.SCORE_MAX)) / length;
+			score = (matches * (ComparisonClassRemapper.SCORE_MAX)) / length;
 			}
 		}
 	}
